@@ -1,5 +1,27 @@
 # TOML Changelog
 
+## unreleased
+
+* Clarify and describe the top-level table.
+* Clarify that indentation before keys is ignored.
+* Clarify that indentation before table headers is ignored.
+* Clarify that indentation between array values is ignored.
+
+## 1.0.0-rc.3 / 2020-10-07
+
+* Clarify that comments and newlines are allowed before commas in arrays.
+* Mark the ABNF as canonical, and reference it from the text specification.
+
+## 1.0.0-rc.2 / 2020-08-09
+
+* Create https://toml.io as the new primary location to read the TOML spec.
+* Clarify meaning of "quotation marks".
+* Clarify meaning of "expected" value ranges.
+* Clarify that EOF is allowed after key/value pair.
+* Clarify that the various styles for writing keys are equivalent.
+* Clarify that line-ending backslashes must be unescaped in multi-line strings.
+* Add examples for invalid float values.
+
 ## 1.0.0-rc.1 / 2020-04-01
 
 * Clarify in ABNF how quotes in multi-line basic and multi-line literal strings

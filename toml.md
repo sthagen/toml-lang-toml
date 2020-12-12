@@ -1,7 +1,7 @@
-![TOML Logo](../../logos/toml-200.png)
+![TOML Logo](logos/toml-200.png)
 
-TOML v1.0.0-rc.1
-================
+TOML
+====
 
 Tom's Obvious, Minimal Language.
 
@@ -15,9 +15,8 @@ obvious semantics. TOML is designed to map unambiguously to a hash table. TOML
 should be easy to parse into data structures in a wide variety of languages.
 
 Table of contents
--------
+-----------------
 
-- [Example](#user-content-example)
 - [Spec](#user-content-spec)
 - [Comment](#user-content-comment)
 - [Key/Value Pair](#user-content-keyvalue-pair)
@@ -36,53 +35,12 @@ Table of contents
 - [Array of Tables](#user-content-array-of-tables)
 - [Filename Extension](#user-content-filename-extension)
 - [MIME Type](#user-content-mime-type)
-- [Comparison with Other Formats](#user-content-comparison-with-other-formats)
-- [Get Involved](#user-content-get-involved)
-- [Wiki](#user-content-wiki)
-
-Example
--------
-
-```toml
-# This is a TOML document.
-
-title = "TOML Example"
-
-[owner]
-name = "Tom Preston-Werner"
-dob = 1979-05-27T07:32:00-08:00 # First class dates
-
-[database]
-server = "192.168.1.1"
-ports = [ 8001, 8001, 8002 ]
-connection_max = 5000
-enabled = true
-
-[servers]
-
-  # Indentation (tabs and/or spaces) is allowed but not required
-  [servers.alpha]
-  ip = "10.0.0.1"
-  dc = "eqdc10"
-
-  [servers.beta]
-  ip = "10.0.0.2"
-  dc = "eqdc10"
-
-[clients]
-data = [ ["gamma", "delta"], [1, 2] ]
-
-# Line breaks are OK when inside arrays
-hosts = [
-  "alpha",
-  "omega"
-]
-```
+- [ABNF Grammar](#user-content-abnf-grammar)
 
 Spec
 ----
 
-* TOML is case sensitive.
+* TOML is case-sensitive.
 * A TOML file must be a valid UTF-8 encoded Unicode document.
 * Whitespace means tab (0x09) or space (0x20).
 * Newline means LF (0x0A) or CRLF (0x0D 0x0A).
@@ -90,7 +48,8 @@ Spec
 Comment
 -------
 
-A hash symbol marks the rest of the line as a comment, except when inside a string.
+A hash symbol marks the rest of the line as a comment, except when inside a
+string.
 
 ```toml
 # This is a full-line comment
@@ -133,8 +92,8 @@ Unspecified values are invalid.
 key = # INVALID
 ```
 
-There must be a newline after a key/value pair.
-(See [Inline Table](#user-content-inline-table) for exceptions.)
+There must be a newline (or EOF) after a key/value pair. (See [Inline
+Table](#user-content-inline-table) for exceptions.)
 
 ```
 first = "Tom" last = "Preston-Werner" # INVALID
@@ -143,7 +102,7 @@ first = "Tom" last = "Preston-Werner" # INVALID
 Keys
 ----
 
-A key may be either bare, quoted or dotted.
+A key may be either bare, quoted, or dotted.
 
 **Bare keys** may only contain ASCII letters, ASCII digits, underscores, and
 dashes (`A-Za-z0-9_-`). Note that bare keys are allowed to be composed of only
@@ -202,8 +161,16 @@ In JSON land, that would give you the following structure:
 }
 ```
 
-Whitespace around dot-separated parts is ignored, however, best practice is to
+Whitespace around dot-separated parts is ignored. However, best practice is to
 not use any extraneous whitespace.
+
+```toml
+fruit.name = "banana"     # this is best practice
+fruit. color = "yellow"    # same as fruit.color
+fruit . flavor = "banana"   # same as fruit.flavor
+```
+
+Indentation is treated as whitespace and ignored.
 
 Defining a key multiple times is invalid.
 
@@ -213,18 +180,12 @@ name = "Tom"
 name = "Pradyun"
 ```
 
-Since bare keys are allowed to compose of only ASCII integers, it is possible
-to write dotted keys that look like floats but are 2-part dotted keys. Don't do
-this unless you have a good reason to (you probably don't).
+Note that bare keys and quoted keys are equivalent:
 
-```toml
-3.14159 = "pi"
 ```
-
-The above TOML maps to the following JSON.
-
-```json
-{ "3": { "14159": "pi" } }
+# THIS WILL NOT WORK
+spelling = "favorite"
+"spelling" = "favourite"
 ```
 
 As long as a key hasn't been directly defined, you may still write to it and
@@ -276,15 +237,30 @@ orange.skin = "thick"
 orange.color = "orange"
 ```
 
+Since bare keys are allowed to compose of only ASCII integers, it is possible
+to write dotted keys that look like floats but are 2-part dotted keys. Don't do
+this unless you have a good reason to (you probably don't).
+
+```toml
+3.14159 = "pi"
+```
+
+The above TOML maps to the following JSON.
+
+```json
+{ "3": { "14159": "pi" } }
+```
+
 String
 ------
 
 There are four ways to express strings: basic, multi-line basic, literal, and
 multi-line literal. All strings must contain only valid UTF-8 characters.
 
-**Basic strings** are surrounded by quotation marks. Any Unicode character may
-be used except those that must be escaped: quotation mark, backslash, and the
-control characters other than tab (U+0000 to U+0008, U+000A to U+001F, U+007F).
+**Basic strings** are surrounded by quotation marks (`"`). Any Unicode character
+may be used except those that must be escaped: quotation mark, backslash, and
+the control characters other than tab (U+0000 to U+0008, U+000A to U+001F,
+U+007F).
 
 ```toml
 str = "I'm a string. \"You can quote me\". Name\tJos\u00E9\nLocation\tSF."
@@ -305,9 +281,10 @@ For convenience, some popular characters have a compact escape sequence.
 ```
 
 Any Unicode character may be escaped with the `\uXXXX` or `\UXXXXXXXX` forms.
-The escape codes must be valid Unicode [scalar values](http://unicode.org/glossary/#unicode_scalar_value).
+The escape codes must be valid Unicode [scalar
+values](https://unicode.org/glossary/#unicode_scalar_value).
 
-All other escape sequences not listed above are reserved and, if used, TOML
+All other escape sequences not listed above are reserved; if they are used, TOML
 should produce an error.
 
 Sometimes you need to express passages of text (e.g. translation files) or would
@@ -335,10 +312,11 @@ str3 = "Roses are red\r\nViolets are blue"
 ```
 
 For writing long strings without introducing extraneous whitespace, use a "line
-ending backslash". When the last non-whitespace character on a line is a `\`, it
-will be trimmed along with all whitespace (including newlines) up to the next
-non-whitespace character or closing delimiter. All of the escape sequences that
-are valid for basic strings are also valid for multi-line basic strings.
+ending backslash". When the last non-whitespace character on a line is an
+unescaped `\`, it will be trimmed along with all whitespace (including newlines)
+up to the next non-whitespace character or closing delimiter. All of the escape
+sequences that are valid for basic strings are also valid for multi-line basic
+strings.
 
 ```toml
 # The following strings are byte-for-byte equivalent:
@@ -377,7 +355,7 @@ str7 = """"This," she said, "is just a pointless statement.""""
 ```
 
 If you're a frequent specifier of Windows paths or regular expressions, then
-having to escape backslashes quickly becomes tedious and error prone. To help,
+having to escape backslashes quickly becomes tedious and error-prone. To help,
 TOML supports literal strings which do not allow escaping at all.
 
 **Literal strings** are surrounded by single quotes. Like basic strings, they
@@ -419,13 +397,13 @@ quot15 = '''Here are fifteen quotation marks: """""""""""""""'''
 # apos15 = '''Here are fifteen apostrophes: ''''''''''''''''''  # INVALID
 apos15 = "Here are fifteen apostrophes: '''''''''''''''"
 
-# 'That's still pointless', she said.
-str = ''''That's still pointless', she said.'''
+# 'That,' she said, 'is still pointless.'
+str = ''''That,' she said, 'is still pointless.''''
 ```
 
 Control characters other than tab are not permitted in a literal string. Thus,
-for binary data it is recommended that you use Base64 or another suitable ASCII
-or UTF-8 encoding. The handling of that encoding will be application specific.
+for binary data, it is recommended that you use Base64 or another suitable ASCII
+or UTF-8 encoding. The handling of that encoding will be application-specific.
 
 Integer
 -------
@@ -447,7 +425,8 @@ side.
 ```toml
 int5 = 1_000
 int6 = 5_349_221
-int7 = 1_2_3_4_5     # VALID but discouraged
+int7 = 53_49_221  # Indian number system grouping
+int8 = 1_2_3_4_5  # VALID but discouraged
 ```
 
 Leading zeros are not allowed. Integer values `-0` and `+0` are valid and
@@ -455,7 +434,7 @@ identical to an unprefixed zero.
 
 Non-negative integer values may also be expressed in hexadecimal, octal, or
 binary. In these formats, leading `+` is not allowed and leading zeros are
-allowed (after the prefix). Hex values are case insensitive. Underscores are
+allowed (after the prefix). Hex values are case-insensitive. Underscores are
 allowed between digits (but not between the prefix and the value).
 
 ```toml
@@ -472,8 +451,9 @@ oct2 = 0o755 # useful for Unix file permissions
 bin1 = 0b11010110
 ```
 
-64 bit (signed long) range expected (−9,223,372,036,854,775,808 to
-9,223,372,036,854,775,807).
+Arbitrary 64-bit signed integers (from −2^63 to 2^63−1) should be accepted and
+handled losslessly. If an integer cannot be represented losslessly, an error
+must be thrown.
 
 Float
 -----
@@ -506,6 +486,15 @@ An exponent part is an E (upper or lower case) followed by an integer part
 (which follows the same rules as decimal integer values but may include leading
 zeros).
 
+The decimal point, if used, must be surrounded by at least one digit on each side.
+
+```
+# INVALID FLOATS
+invalid_float_1 = .7
+invalid_float_2 = 7.
+invalid_float_3 = 3.e+20
+```
+
 Similar to integers, you may use underscores to enhance readability. Each
 underscore must be surrounded by at least one digit.
 
@@ -524,9 +513,9 @@ sf2 = +inf # positive infinity
 sf3 = -inf # negative infinity
 
 # not a number
-sf4 = nan  # actual sNaN/qNaN encoding is implementation specific
+sf4 = nan  # actual sNaN/qNaN encoding is implementation-specific
 sf5 = +nan # same as `nan`
-sf6 = -nan # valid, actual encoding is implementation specific
+sf6 = -nan # valid, actual encoding is implementation-specific
 ```
 
 Boolean
@@ -540,10 +529,10 @@ bool2 = false
 ```
 
 Offset Date-Time
----------------
+----------------
 
 To unambiguously represent a specific instant in time, you may use an
-[RFC 3339](http://tools.ietf.org/html/rfc3339) formatted date-time with offset.
+[RFC 3339](https://tools.ietf.org/html/rfc3339) formatted date-time with offset.
 
 ```toml
 odt1 = 1979-05-27T07:32:00Z
@@ -552,41 +541,41 @@ odt3 = 1979-05-27T00:32:00.999999-07:00
 ```
 
 For the sake of readability, you may replace the T delimiter between date and
-time with a space (as permitted by RFC 3339 section 5.6).
+time with a space character (as permitted by RFC 3339 section 5.6).
 
 ```toml
 odt4 = 1979-05-27 07:32:00Z
 ```
 
-The precision of fractional seconds is implementation specific, but at least
-millisecond precision is expected. If the value contains greater precision than
-the implementation can support, the additional precision must be truncated, not
+Millisecond precision is required. Further precision of fractional seconds is
+implementation-specific. If the value contains greater precision than the
+implementation can support, the additional precision must be truncated, not
 rounded.
 
 Local Date-Time
---------------
+---------------
 
-If you omit the offset from an [RFC 3339](http://tools.ietf.org/html/rfc3339)
+If you omit the offset from an [RFC 3339](https://tools.ietf.org/html/rfc3339)
 formatted date-time, it will represent the given date-time without any relation
 to an offset or timezone. It cannot be converted to an instant in time without
-additional information. Conversion to an instant, if required, is implementation
-specific.
+additional information. Conversion to an instant, if required, is
+implementation-specific.
 
 ```toml
 ldt1 = 1979-05-27T07:32:00
 ldt2 = 1979-05-27T00:32:00.999999
 ```
 
-The precision of fractional seconds is implementation specific, but at least
-millisecond precision is expected. If the value contains greater precision than
-the implementation can support, the additional precision must be truncated, not
+Millisecond precision is required. Further precision of fractional seconds is
+implementation-specific. If the value contains greater precision than the
+implementation can support, the additional precision must be truncated, not
 rounded.
 
 Local Date
 ----------
 
 If you include only the date portion of an
-[RFC 3339](http://tools.ietf.org/html/rfc3339) formatted date-time, it will
+[RFC 3339](https://tools.ietf.org/html/rfc3339) formatted date-time, it will
 represent that entire day without any relation to an offset or timezone.
 
 ```toml
@@ -597,7 +586,7 @@ Local Time
 ----------
 
 If you include only the time portion of an [RFC
-3339](http://tools.ietf.org/html/rfc3339) formatted date-time, it will represent
+3339](https://tools.ietf.org/html/rfc3339) formatted date-time, it will represent
 that time of day without any relation to a specific day or any offset or
 timezone.
 
@@ -606,9 +595,9 @@ lt1 = 07:32:00
 lt2 = 00:32:00.999999
 ```
 
-The precision of fractional seconds is implementation specific, but at least
-millisecond precision is expected. If the value contains greater precision than
-the implementation can support, the additional precision must be truncated, not
+Millisecond precision is required. Further precision of fractional seconds is
+implementation-specific. If the value contains greater precision than the
+implementation can support, the additional precision must be truncated, not
 rounded.
 
 Array
@@ -633,9 +622,10 @@ contributors = [
 ]
 ```
 
-Arrays can span multiple lines. A terminating comma (also called trailing comma)
-is ok after the last value of the array. There can be an arbitrary number of
-newlines and comments before a value and before the closing bracket.
+Arrays can span multiple lines. A terminating comma (also called a trailing
+comma) is permitted after the last value of the array. Any number of newlines
+and comments may precede values, commas, and the closing bracket. Indentation
+between array values and commas is treated as whitespace and ignored.
 
 ```toml
 integers2 = [
@@ -672,7 +662,8 @@ key1 = "another string"
 key2 = 456
 ```
 
-Naming rules for tables are the same as for keys (see definition of Keys above).
+Naming rules for tables are the same as for keys (see definition of
+[Keys](#user-content-keys) above).
 
 ```toml
 [dog."tater.man"]
@@ -685,7 +676,7 @@ In JSON land, that would give you the following structure:
 { "dog": { "tater.man": { "type": { "name": "pug" } } } }
 ```
 
-Whitespace around the key is ignored, however, best practice is to not use any
+Whitespace around the key is ignored. However, best practice is to not use any
 extraneous whitespace.
 
 ```toml
@@ -694,6 +685,8 @@ extraneous whitespace.
 [ g .  h  . i ]    # same as [g.h.i]
 [ j . "ʞ" . 'l' ]  # same as [j."ʞ".'l']
 ```
+
+Indentation is treated as whitespace and ignored.
 
 You don't need to specify all the super-tables if you don't want to. TOML knows
 how to do it for you.
@@ -704,12 +697,12 @@ how to do it for you.
 # [x.y.z] need these
 [x.y.z.w] # for this to work
 
-[x] # defining a super-table afterwards is ok
+[x] # defining a super-table afterward is ok
 ```
 
 Empty tables are allowed and simply have no key/value pairs within them.
 
-Like keys, you cannot define any table more than once. Doing so is invalid.
+Like keys, you cannot define a table more than once. Doing so is invalid.
 
 ```
 # DO NOT DO THIS
@@ -747,6 +740,21 @@ Defining tables out-of-order is discouraged.
 [animal]
 ```
 
+The top-level table, also called the root table, starts at the beginning of the
+document and ends just before the first table header (or EOF). Unlike other
+tables, it is nameless and cannot be relocated.
+
+```toml
+# Top-level table begins.
+name = "Fido"
+breed = "pug"
+
+# Top-level table ends.
+[owner]
+name = "Regina Dogman"
+member_since = 1999-08-04
+```
+
 Dotted keys define everything to the left of each dot as a table. Since tables
 cannot be defined more than once, redefining such tables using a `[table]`
 header is not allowed. Likewise, using dotted keys to redefine tables already
@@ -772,14 +780,14 @@ Inline Table
 
 Inline tables provide a more compact syntax for expressing tables. They are
 especially useful for grouped data that can otherwise quickly become verbose.
-Inline tables are enclosed in curly braces `{` and `}`. Within the braces, zero
-or more comma separated key/value pairs may appear. Key/value pairs take the
+Inline tables are enclosed in curly braces: `{` and `}`. Within the braces, zero
+or more comma-separated key/value pairs may appear. Key/value pairs take the
 same form as key/value pairs in standard tables. All value types are allowed,
 including inline tables.
 
 Inline tables are intended to appear on a single line. A terminating comma (also
-called trailing comma) is not permitted after the last key/value pair in an
-inline table.  No newlines are allowed between the curly braces unless they are
+called trailing comma) is not permitted after the last key/value pair in an
+inline table. No newlines are allowed between the curly braces unless they are
 valid within a value. Even so, it is strongly discouraged to break an inline
 table onto multiples lines. If you find yourself gripped with this desire, it
 means you should be using standard tables.
@@ -804,7 +812,6 @@ y = 2
 
 [animal]
 type.name = "pug"
-
 ```
 
 Inline tables fully define the keys and sub-tables within them. New keys and
@@ -828,12 +835,12 @@ type.name = "Nail"
 Array of Tables
 ---------------
 
-The last type that has not yet been expressed is an array of tables. These can
-be expressed by using a table name in double brackets. Under that, and until the
-next table or EOF are the key/values of that table. Each table with the same
-double bracketed name will be an element in the array of tables. The tables are
-inserted in the order encountered. A double bracketed table without any
-key/value pairs will be considered an empty table.
+The last syntax that has not yet been described allows writing arrays of tables.
+These can be expressed by using a table name in double brackets. Under that, and
+until the next table or EOF are the key/values of that table. Each table with
+the same double bracketed name will be an element in the array of tables. The
+tables are inserted in the order encountered. A double bracketed table without
+any key/value pairs will be considered an empty table.
 
 ```toml
 [[products]]
@@ -862,29 +869,30 @@ In JSON land, that would give you the following structure.
 ```
 
 You can create nested arrays of tables as well. Just use the same double bracket
-syntax on sub-tables. Each double-bracketed sub-table will belong to the most
-recently defined table element. Normal sub-tables (not arrays) likewise belong
-to the most recently defined table element.
+syntax on sub-tables. In nested arrays of tables, each double-bracketed
+sub-table will belong to the most recently defined table element. Normal
+sub-tables (not arrays) likewise belong to the most recently defined table
+element.
 
 ```toml
 [[fruit]]
-  name = "apple"
+name = "apple"
 
-  [fruit.physical]  # subtable
-    color = "red"
-    shape = "round"
+[fruit.physical]  # subtable
+color = "red"
+shape = "round"
 
-  [[fruit.variety]]  # nested array of tables
-    name = "red delicious"
+[[fruit.variety]]  # nested array of tables
+name = "red delicious"
 
-  [[fruit.variety]]
-    name = "granny smith"
+[[fruit.variety]]
+name = "granny smith"
 
 [[fruit]]
-  name = "banana"
+name = "banana"
 
-  [[fruit.variety]]
-    name = "plantain"
+[[fruit.variety]]
+name = "plantain"
 ```
 
 The above TOML maps to the following JSON.
@@ -920,16 +928,16 @@ reverse that ordering must produce an error at parse time.
 ```
 # INVALID TOML DOC
 [fruit.physical]  # subtable, but to which parent element should it belong?
-  color = "red"
-  shape = "round"
+color = "red"
+shape = "round"
 
 [[fruit]]  # parser must throw an error upon discovering that "fruit" is
            # an array rather than a table
-  name = "apple"
+name = "apple"
 ```
 
-Attempting to append to a statically defined array, even if that array is empty
-or of compatible type, must produce an error at parse time.
+Attempting to append to a statically defined array, even if that array is empty,
+must produce an error at parse time.
 
 ```
 # INVALID TOML DOC
@@ -945,22 +953,22 @@ as an array must likewise produce a parse-time error.
 ```
 # INVALID TOML DOC
 [[fruit]]
-  name = "apple"
+name = "apple"
 
-  [[fruit.variety]]
-    name = "red delicious"
+[[fruit.variety]]
+name = "red delicious"
 
-  # INVALID: This table conflicts with the previous array of tables
-  [fruit.variety]
-    name = "granny smith"
+# INVALID: This table conflicts with the previous array of tables
+[fruit.variety]
+name = "granny smith"
 
-  [fruit.physical]
-    color = "red"
-    shape = "round"
+[fruit.physical]
+color = "red"
+shape = "round"
 
-  # INVALID: This array of tables conflicts with the previous table
-  [[fruit.physical]]
-    color = "green"
+# INVALID: This array of tables conflicts with the previous table
+[[fruit.physical]]
+color = "green"
 ```
 
 You may also use inline tables where appropriate:
@@ -982,52 +990,9 @@ MIME Type
 When transferring TOML files over the internet, the appropriate MIME type is
 `application/toml`.
 
-Comparison with Other Formats
------------------------------
-
-TOML shares traits with other file formats used for application configuration
-and data serialization, such as YAML and JSON. TOML and JSON both are simple and
-use ubiquitous data types, making them easy to code for or parse with machines.
-TOML and YAML both emphasize human readability features, like comments that make
-it easier to understand the purpose of a given line. TOML differs in combining
-these, allowing comments (unlike JSON) but preserving simplicity (unlike YAML).
-
-Because TOML is explicitly intended as a configuration file format, parsing it
-is easy, but it is not intended for serializing arbitrary data structures. TOML
-always has a hash table at the top level of the file, which can easily have data
-nested inside its keys, but it doesn't permit top-level arrays or floats, so it
-cannot directly serialize some data. There is also no standard identifying the
-start or end of a TOML file, which can complicate sending it through a stream.
-These details must be negotiated on the application layer.
-
-INI files are frequently compared to TOML for their similarities in syntax and
-use as configuration files. However, there is no standardized format for INI
-and they do not gracefully handle more than one or two levels of nesting.
-
-Further reading:
- * YAML spec: https://yaml.org/spec/1.2/spec.html
- * JSON spec: https://tools.ietf.org/html/rfc8259
- * Wikipedia on INI files: https://en.wikipedia.org/wiki/INI_file
-
-Get Involved
+ABNF Grammar
 ------------
 
-Documentation, bug reports, pull requests, and all other contributions
-are welcome!
+A formal description of TOML's syntax is available, as a separate [ABNF file][abnf].
 
-Wiki
-----------------------------------------------------------------------
-
-We have an [Official TOML Wiki](https://github.com/toml-lang/toml/wiki) that
-catalogs the following:
-
-* Projects using TOML
-* Implementations
-* Validators
-* Language agnostic test suite for TOML decoders and encoders
-* Editor support
-* Encoders
-* Converters
-
-Please take a look if you'd like to view or add to that list. Thanks for being
-a part of the TOML community!
+[abnf]: ./toml.abnf
