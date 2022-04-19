@@ -2,7 +2,8 @@
 
 ## unreleased
 
-Nothing.
+* Clarify where and how dotted keys define tables.
+* Add new `\e` shorthand for the escape character.
 
 ## 1.0.0 / 2021-01-11
 
