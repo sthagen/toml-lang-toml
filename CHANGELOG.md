@@ -1,6 +1,6 @@
 # TOML Changelog
 
-## unreleased
+## 1.1.0 / 2025-12-18
 
 - Allow newlines and trailing commas in inline tables ([#904]).
 
@@ -14,7 +14,7 @@
           },
       }
 
-- Add `\xHH` notation to basic strings for codepoints <255 ([#796]):
+- Add `\xHH` notation to basic strings for codepoints ≤255 ([#796]):
 
       null = "null byte: \x00; letter a: \x61"
 
