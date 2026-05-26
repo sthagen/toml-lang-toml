@@ -558,15 +558,15 @@ For the sake of readability, you may replace the T delimiter between date and
 time with a space character (as permitted by RFC 3339 section 5.6).
 
 ```toml
-odt4 = 1979-05-27 07:32:00Z
+odt5 = 1979-05-27 07:32:00Z
 ```
 
 One exception to RFC 3339 is permitted: seconds may be omitted, in which case
 `:00` will be assumed. The offset immediately follows the minutes.
 
 ```toml
-odt5 = 1979-05-27 07:32Z
-odt6 = 1979-05-27 07:32-07:00
+odt6 = 1979-05-27 07:32Z
+odt7 = 1979-05-27 07:32-07:00
 ```
 
 Implementations are required to support at least millisecond precision.
@@ -590,7 +590,7 @@ ldt3 = 1979-05-27T00:32:00.999999
 Seconds may be omitted, in which case `:00` will be assumed.
 
 ```toml
-ldt3 = 1979-05-27T07:32
+ldt4 = 1979-05-27T07:32
 ```
 
 Implementations are required to support at least millisecond precision.
@@ -623,7 +623,7 @@ lt3 = 00:32:00.999999
 Seconds may be omitted, in which case `:00` will be assumed.
 
 ```toml
-lt3 = 07:32
+lt4 = 07:32
 ```
 
 Implementations are required to support at least millisecond precision.
@@ -704,6 +704,10 @@ In JSON land, that would give you the following structure:
 ```json
 { "dog": { "tater.man": { "type": { "name": "pug" } } } }
 ```
+
+There is no limit on the nesting depth. However, in practice most
+implementations impose some limit to prevent excessive resource usage and/or
+crashes. It's recommended to allow at least 100 levels of nesting.
 
 Whitespace around the key is ignored. However, best practice is to not use any
 extraneous whitespace.
