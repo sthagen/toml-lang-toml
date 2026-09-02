@@ -194,6 +194,20 @@ spelling = "favorite"
 "spelling" = "favourite"
 ```
 
+Quoted keys are considered identical if their code point sequences are the same.
+It is possible to create distinct keys that appear visually identical. Doing so
+is discouraged:
+
+```toml
+# VALID BUT DISCOURAGED
+
+# prénom = "Françoise", using pre-composed LATIN SMALL LETTER E WITH ACUTE (U+00E9, NFC)
+"pr\xe9nom" = "Françoise"
+
+# prénom = "Françoise", using COMBINING ACUTE ACCENT (U+0301, NFD)
+"pre\u0301nom" = "Françoise"
+```
+
 As long as a key hasn't been directly defined, you may still write to it and to
 names within it.
 
